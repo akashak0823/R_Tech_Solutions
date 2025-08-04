@@ -77,7 +77,7 @@ const Home = () => {
             <motion.p variants={fadeIn}>
               Delivering high-quality industrial hardware, filtration systems, precision
               auto components, and smart sensor solutions for modern automation needs. 
-              We bridge traditional industries with smart IIoT technologies, helping
+              We bridge traditional industries with smart IoT technologies, helping
               manufacturers increase efficiency, reduce downtime, and achieve 
               innovation-driven growth. Our expertise spans Industrial Hardware & 
               Fasteners (Hex Bolts, Nuts, Washers), Filtration & Process Equipment 
@@ -135,3 +135,4 @@ const Home = () => {
 };
 
 export default Home;
+
