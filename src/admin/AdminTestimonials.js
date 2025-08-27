@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useReactTable } from "@tanstack/react-table";
+import { useTable } from "react-table"; // ✅ use v7 style (same as Products)
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -17,7 +17,9 @@ const AdminTestimonials = () => {
 
   const fetchTestimonials = async () => {
     try {
-      const res = await axios.get("https://r-tech-backend.onrender.com/api/testimonials");
+      const res = await axios.get(
+        "https://r-tech-backend.onrender.com/api/testimonials"
+      );
       setTestimonials(res.data);
     } catch (err) {
       toast.error("Failed to fetch testimonials");
@@ -31,7 +33,9 @@ const AdminTestimonials = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`https://r-tech-backend.onrender.com/api/testimonials/${id}`);
+      await axios.delete(
+        `https://r-tech-backend.onrender.com/api/testimonials/${id}`
+      );
       setTestimonials((prev) => prev.filter((t) => t._id !== id));
       toast.success("Testimonial deleted successfully");
     } catch (err) {
@@ -65,9 +69,11 @@ const AdminTestimonials = () => {
         );
         toast.success("Testimonial updated successfully");
       } else {
-        res = await axios.post("https://r-tech-backend.onrender.com/api/testimonials", data, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        res = await axios.post(
+          "https://r-tech-backend.onrender.com/api/testimonials",
+          data,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
         setTestimonials((prev) => [...prev, res.data]);
         toast.success("Testimonial added successfully");
       }
@@ -79,6 +85,7 @@ const AdminTestimonials = () => {
     setEditingTestimonial(null);
   };
 
+  // ✅ React Table columns (v7 style)
   const columns = React.useMemo(
     () => [
       { Header: "Name", accessor: "name" },
@@ -91,7 +98,7 @@ const AdminTestimonials = () => {
           value ? (
             <video
               src={value.startsWith("http") ? value : value.replace("../", "/")}
-              width="100"
+              width="120"
               controls
             />
           ) : (
@@ -101,21 +108,27 @@ const AdminTestimonials = () => {
       {
         Header: "Actions",
         Cell: ({ row }) => (
-          <>
-            <button onClick={() => handleEdit(row.original)}>Edit</button>
+          <div className="actions">
+            <button
+              onClick={() => handleEdit(row.original)}
+              className="edit-btn"
+            >
+              Edit
+            </button>
             <button
               onClick={() => handleDelete(row.original._id)}
               className="delete-btn"
             >
               Delete
             </button>
-          </>
+          </div>
         ),
       },
     ],
     []
   );
 
+  // ✅ useTable hook
   const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
     useTable({ columns, data: testimonials });
 
