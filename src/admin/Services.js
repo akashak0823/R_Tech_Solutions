@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useReactTable } from "@tanstack/react-table";
+import {
+  useReactTable,
+  getCoreRowModel,
+  flexRender,
+  createColumnHelper,
+} from "@tanstack/react-table";
 import axios from "axios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -18,7 +23,9 @@ const Services = () => {
 
   const fetchServices = async () => {
     try {
-      const res = await axios.get("https://r-tech-backend.onrender.com/api/services");
+      const res = await axios.get(
+        "https://r-tech-backend.onrender.com/api/services"
+      );
       setServices(res.data);
     } catch (err) {
       console.error("Failed to fetch services:", err);
@@ -38,7 +45,9 @@ const Services = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`https://r-tech-backend.onrender.com/api/services/${id}`);
+      await axios.delete(
+        `https://r-tech-backend.onrender.com/api/services/${id}`
+      );
       setServices((prev) => prev.filter((s) => s._id !== id));
       toast.success("Service deleted successfully.");
     } catch (err) {
@@ -102,78 +111,82 @@ const Services = () => {
     setEditingService(null);
   };
 
-  const columns = React.useMemo(
-    () => [
-      { Header: "Title", accessor: "title" },
-      { Header: "Category", accessor: "category" },
-      { Header: "Slug", accessor: "slug" },
-      {
-        Header: "Key Features",
-        accessor: "keyFeatures",
-        Cell: ({ value }) =>
-          Array.isArray(value) ? value.join(", ") : "",
-      },
-      {
-        Header: "Media",
-        accessor: "media",
-        Cell: ({ value }) => {
-          if (!value || !value.url) return "N/A";
-          if (value.resource_type === "video") {
-            return (
-              <video width="120" controls>
-                <source src={value.url} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-            );
-          }
-          return (
-            <img
-              src={value.url}
-              alt="media"
-              style={{ width: "60px", height: "auto", borderRadius: 4 }}
-            />
-          );
-        },
-      },
-      {
-        Header: "Icon",
-        accessor: "icon",
-        Cell: ({ value }) =>
-          value ? (
-            <img
-              src={value}
-              alt="icon"
-              style={{ width: "60px", height: "auto", borderRadius: 4 }}
-            />
-          ) : (
-            "N/A"
-          ),
-      },
-      {
-        Header: "Actions",
-        Cell: ({ row }) => (
-          <>
-            <button onClick={() => handleEdit(row.original)}>Edit</button>
-            <button
-              onClick={() => handleDelete(row.original._id)}
-              className="delete-btn"
-            >
-              Delete
-            </button>
-          </>
-        ),
-      },
-    ],
-    []
-  );
+  // ✅ Define columns properly with TanStack v8
+  const columnHelper = createColumnHelper();
 
-  const {
-    getTableProps,
-    getTableBodyProps,
-    headerGroups,
-    rows,
-    prepareRow,
-  } = useTable({ columns, data: services });
+  const columns = [
+    columnHelper.accessor("title", {
+      header: "Title",
+    }),
+    columnHelper.accessor("category", {
+      header: "Category",
+    }),
+    columnHelper.accessor("slug", {
+      header: "Slug",
+    }),
+    columnHelper.accessor("keyFeatures", {
+      header: "Key Features",
+      cell: (info) =>
+        Array.isArray(info.getValue()) ? info.getValue().join(", ") : "",
+    }),
+    columnHelper.accessor("media", {
+      header: "Media",
+      cell: (info) => {
+        const value = info.getValue();
+        if (!value || !value.url) return "N/A";
+        if (value.resource_type === "video") {
+          return (
+            <video width="120" controls>
+              <source src={value.url} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          );
+        }
+        return (
+          <img
+            src={value.url}
+            alt="media"
+            style={{ width: "60px", borderRadius: 4 }}
+          />
+        );
+      },
+    }),
+    columnHelper.accessor("icon", {
+      header: "Icon",
+      cell: (info) =>
+        info.getValue() ? (
+          <img
+            src={info.getValue()}
+            alt="icon"
+            style={{ width: "60px", borderRadius: 4 }}
+          />
+        ) : (
+          "N/A"
+        ),
+    }),
+    columnHelper.display({
+      id: "actions",
+      header: "Actions",
+      cell: (info) => (
+        <>
+          <button onClick={() => handleEdit(info.row.original)}>Edit</button>
+          <button
+            onClick={() => handleDelete(info.row.original._id)}
+            className="delete-btn"
+          >
+            Delete
+          </button>
+        </>
+      ),
+    }),
+  ];
+
+  // ✅ Initialize table with TanStack v8 API
+  const table = useReactTable({
+    data: services,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
 
   return (
     <div className="services-page">
@@ -182,32 +195,29 @@ const Services = () => {
         Add Service
       </button>
 
-      <table {...getTableProps()} className="services-table">
+      <table className="services-table">
         <thead>
-          {headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
-              {headerGroup.headers.map((column) => (
-                <th {...column.getHeaderProps()} key={column.id}>
-                  {column.render("Header")}
+          {table.getHeaderGroups().map((headerGroup) => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <th key={header.id}>
+                  {flexRender(header.column.columnDef.header, header.getContext())}
                 </th>
               ))}
             </tr>
           ))}
         </thead>
 
-        <tbody {...getTableBodyProps()}>
-          {rows.map((row) => {
-            prepareRow(row);
-            return (
-              <tr {...row.getRowProps()} key={row.id}>
-                {row.cells.map((cell) => (
-                  <td {...cell.getCellProps()} key={cell.column.id}>
-                    {cell.render("Cell")}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
+        <tbody>
+          {table.getRowModel().rows.map((row) => (
+            <tr key={row.id}>
+              {row.getVisibleCells().map((cell) => (
+                <td key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
+            </tr>
+          ))}
         </tbody>
       </table>
 
