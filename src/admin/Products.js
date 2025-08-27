@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useTable } from "react-table";
+import { useReactTable } from "@tanstack/react-table";
 import axios from "axios";
 
 import { ToastContainer, toast } from "react-toastify";
