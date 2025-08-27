@@ -1,0 +1,94 @@
+.products-page {
+  padding: 30px;
+  font-family: 'Poppins', sans-serif;
+  background: #f4f6fc;
+  min-height: 100vh;
+}
+
+.products-page h2 {
+  font-size: 26px;
+  margin-bottom: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Add Button */
+.add-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #1fa2ff, #12d8fa, #a6ffcb);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+.add-btn:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(to right, #36d1dc, #5b86e5);
+}
+
+/* Table */
+.products-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 12px;
+}
+
+.products-table th {
+  text-align: left;
+  padding: 12px 16px;
+  background: #2e2e48;
+  color: #fff;
+  font-size: 15px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.products-table td {
+  padding: 14px 16px;
+  background: #fff;
+  border-bottom: 1px solid #e1e1e1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  font-size: 14px;
+  color: #444;
+}
+
+/* Actions */
+.products-table td button {
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-right: 8px;
+  transition: 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Edit Button */
+.products-table td button:first-child {
+  background: #ffc107;
+  color: #000;
+}
+
+.products-table td button:first-child:hover {
+  background: #e0a800;
+}
+
+/* Delete Button */
+.delete-btn {
+  background: #dc3545;
+  color: #fff;
+}
+
+.delete-btn:hover {
+  background: #b02a37;
+}
