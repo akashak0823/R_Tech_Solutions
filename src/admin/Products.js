@@ -6,6 +6,7 @@ import {
   createColumnHelper,
 } from "@tanstack/react-table";
 import axios from "axios";
+
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -127,7 +128,7 @@ const Products = () => {
     setEditingProduct(null);
   };
 
-  // ✅ Define columns using TanStack v8
+  // ✅ Define columns using TanStack v8 API
   const columnHelper = createColumnHelper();
 
   const columns = [
@@ -151,11 +152,7 @@ const Products = () => {
         const imgUrl = value[0]?.url || value[0];
         return (
           <img
-            src={
-              imgUrl?.startsWith("http")
-                ? imgUrl
-                : imgUrl?.replace("../", "/")
-            }
+            src={imgUrl?.startsWith("http") ? imgUrl : imgUrl?.replace("../", "/")}
             alt="Product"
             style={{ width: "60px", height: "auto", objectFit: "contain" }}
           />
@@ -179,7 +176,6 @@ const Products = () => {
     }),
   ];
 
-  // ✅ Create the table instance
   const table = useReactTable({
     data: products,
     columns,
@@ -235,7 +231,6 @@ const Products = () => {
         />
       )}
 
-      {/* Toast container to show toasts */}
       <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
