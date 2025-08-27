@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useTable } from "react-table"; // ✅ use v7 style (same as Products)
+import {
+  useReactTable,
+  getCoreRowModel,
+  flexRender,
+} from "@tanstack/react-table";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -72,7 +76,9 @@ const AdminTestimonials = () => {
         res = await axios.post(
           "https://r-tech-backend.onrender.com/api/testimonials",
           data,
-          { headers: { "Content-Type": "multipart/form-data" } }
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
         );
         setTestimonials((prev) => [...prev, res.data]);
         toast.success("Testimonial added successfully");
@@ -85,52 +91,59 @@ const AdminTestimonials = () => {
     setEditingTestimonial(null);
   };
 
-  // ✅ React Table columns (v7 style)
-  const columns = React.useMemo(
-    () => [
-      { Header: "Name", accessor: "name" },
-      { Header: "Position", accessor: "position" },
-      { Header: "Message", accessor: "message" },
-      {
-        Header: "Video",
-        accessor: "video",
-        Cell: ({ value }) =>
-          value ? (
-            <video
-              src={value.startsWith("http") ? value : value.replace("../", "/")}
-              width="120"
-              controls
-            />
-          ) : (
-            "No video"
-          ),
+  // ✅ TanStack Table Columns
+  const columns = [
+    {
+      accessorKey: "name",
+      header: "Name",
+    },
+    {
+      accessorKey: "position",
+      header: "Position",
+    },
+    {
+      accessorKey: "message",
+      header: "Message",
+    },
+    {
+      accessorKey: "video",
+      header: "Video",
+      cell: ({ getValue }) => {
+        const value = getValue();
+        return value ? (
+          <video
+            src={value.startsWith("http") ? value : value.replace("../", "/")}
+            width="100"
+            controls
+          />
+        ) : (
+          "No video"
+        );
       },
-      {
-        Header: "Actions",
-        Cell: ({ row }) => (
-          <div className="actions">
-            <button
-              onClick={() => handleEdit(row.original)}
-              className="edit-btn"
-            >
-              Edit
-            </button>
-            <button
-              onClick={() => handleDelete(row.original._id)}
-              className="delete-btn"
-            >
-              Delete
-            </button>
-          </div>
-        ),
-      },
-    ],
-    []
-  );
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => (
+        <div>
+          <button onClick={() => handleEdit(row.original)}>Edit</button>
+          <button
+            onClick={() => handleDelete(row.original._id)}
+            className="delete-btn"
+          >
+            Delete
+          </button>
+        </div>
+      ),
+    },
+  ];
 
-  // ✅ useTable hook
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-    useTable({ columns, data: testimonials });
+  // ✅ React Table instance
+  const table = useReactTable({
+    data: testimonials,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
 
   return (
     <div className="products-page">
@@ -145,32 +158,32 @@ const AdminTestimonials = () => {
         Add Testimonial
       </button>
 
-      <table {...getTableProps()} className="products-table">
+      <table className="products-table">
         <thead>
-          {headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
-              {headerGroup.headers.map((column) => (
-                <th {...column.getHeaderProps()} key={column.id}>
-                  {column.render("Header")}
+          {table.getHeaderGroups().map((headerGroup) => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <th key={header.id}>
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext()
+                  )}
                 </th>
               ))}
             </tr>
           ))}
         </thead>
 
-        <tbody {...getTableBodyProps()}>
-          {rows.map((row) => {
-            prepareRow(row);
-            return (
-              <tr {...row.getRowProps()} key={row.id}>
-                {row.cells.map((cell) => (
-                  <td {...cell.getCellProps()} key={cell.column.id}>
-                    {cell.render("Cell")}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
+        <tbody>
+          {table.getRowModel().rows.map((row) => (
+            <tr key={row.id}>
+              {row.getVisibleCells().map((cell) => (
+                <td key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
+            </tr>
+          ))}
         </tbody>
       </table>
 
