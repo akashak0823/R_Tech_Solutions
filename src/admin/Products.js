@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { useReactTable } from "@tanstack/react-table";
+import {
+  useReactTable,
+  getCoreRowModel,
+  flexRender,
+  createColumnHelper,
+} from "@tanstack/react-table";
 import axios from "axios";
-
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -19,7 +23,9 @@ const Products = () => {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get("https://r-tech-backend.onrender.com/api/products");
+      const res = await axios.get(
+        "https://r-tech-backend.onrender.com/api/products"
+      );
       setProducts(res.data);
     } catch (err) {
       console.error("Failed to fetch products:", err);
@@ -48,7 +54,9 @@ const Products = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`https://r-tech-backend.onrender.com/api/products/${id}`);
+      await axios.delete(
+        `https://r-tech-backend.onrender.com/api/products/${id}`
+      );
       setProducts((prev) => prev.filter((p) => p._id !== id));
       toast.success("Product deleted successfully");
     } catch (err) {
@@ -102,9 +110,11 @@ const Products = () => {
         toast.success("Product updated successfully");
       } else {
         // Adding
-        res = await axios.post("https://r-tech-backend.onrender.com/api/products", data, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        res = await axios.post(
+          "https://r-tech-backend.onrender.com/api/products",
+          data,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
         setProducts((prev) => [...prev, res.data]);
         toast.success("Product added successfully");
       }
@@ -117,62 +127,64 @@ const Products = () => {
     setEditingProduct(null);
   };
 
-  const columns = React.useMemo(
-    () => [
-      { Header: "Name", accessor: "name" },
-      { Header: "Category", accessor: "category" },
-      { Header: "Slug", accessor: "slug" },
-      { Header: "Description", accessor: "description" },
-      { Header: "Details", accessor: "details" },
-      {
-        Header: "Related",
-        accessor: "related",
-        Cell: ({ value }) =>
-          Array.isArray(value) ? value.join(", ") : value || "",
-      },
-      {
-        Header: "Image",
-        accessor: "images",
-        Cell: ({ value }) => {
-          if (!value || value.length === 0) return "No image";
-          const imgUrl = value[0]?.url || value[0];
-          return (
-            <img
-              src={
-                imgUrl?.startsWith("http")
-                  ? imgUrl
-                  : imgUrl?.replace("../", "/")
-              }
-              alt="Product"
-              style={{
-                width: "60px",
-                height: "auto",
-                objectFit: "contain",
-              }}
-            />
-          );
-        },
-      },
-      {
-        Header: "Actions",
-        Cell: ({ row }) => (
-          <>
-            <button onClick={() => handleEdit(row.original)}>Edit</button>
-            <button
-              onClick={() => handleDelete(row.original._id)}
-              className="delete-btn"
-            >
-              Delete
-            </button>
-          </>
-        ),
-      },
-    ],
-    []
-  );
+  // ✅ Define columns using TanStack v8
+  const columnHelper = createColumnHelper();
 
-  const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-    useTable({ columns, data: products });
+  const columns = [
+    columnHelper.accessor("name", { header: "Name" }),
+    columnHelper.accessor("category", { header: "Category" }),
+    columnHelper.accessor("slug", { header: "Slug" }),
+    columnHelper.accessor("description", { header: "Description" }),
+    columnHelper.accessor("details", { header: "Details" }),
+    columnHelper.accessor("related", {
+      header: "Related",
+      cell: (info) =>
+        Array.isArray(info.getValue())
+          ? info.getValue().join(", ")
+          : info.getValue() || "",
+    }),
+    columnHelper.accessor("images", {
+      header: "Image",
+      cell: (info) => {
+        const value = info.getValue();
+        if (!value || value.length === 0) return "No image";
+        const imgUrl = value[0]?.url || value[0];
+        return (
+          <img
+            src={
+              imgUrl?.startsWith("http")
+                ? imgUrl
+                : imgUrl?.replace("../", "/")
+            }
+            alt="Product"
+            style={{ width: "60px", height: "auto", objectFit: "contain" }}
+          />
+        );
+      },
+    }),
+    columnHelper.display({
+      id: "actions",
+      header: "Actions",
+      cell: (info) => (
+        <>
+          <button onClick={() => handleEdit(info.row.original)}>Edit</button>
+          <button
+            onClick={() => handleDelete(info.row.original._id)}
+            className="delete-btn"
+          >
+            Delete
+          </button>
+        </>
+      ),
+    }),
+  ];
+
+  // ✅ Create the table instance
+  const table = useReactTable({
+    data: products,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
 
   return (
     <div className="products-page">
@@ -187,32 +199,28 @@ const Products = () => {
         Add Product
       </button>
 
-      <table {...getTableProps()} className="products-table">
+      <table className="products-table">
         <thead>
-          {headerGroups.map((headerGroup) => (
-            <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
-              {headerGroup.headers.map((column) => (
-                <th {...column.getHeaderProps()} key={column.id}>
-                  {column.render("Header")}
+          {table.getHeaderGroups().map((headerGroup) => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <th key={header.id}>
+                  {flexRender(header.column.columnDef.header, header.getContext())}
                 </th>
               ))}
             </tr>
           ))}
         </thead>
-
-        <tbody {...getTableBodyProps()}>
-          {rows.map((row) => {
-            prepareRow(row);
-            return (
-              <tr {...row.getRowProps()} key={row.id}>
-                {row.cells.map((cell) => (
-                  <td {...cell.getCellProps()} key={cell.column.id}>
-                    {cell.render("Cell")}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
+        <tbody>
+          {table.getRowModel().rows.map((row) => (
+            <tr key={row.id}>
+              {row.getVisibleCells().map((cell) => (
+                <td key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
+            </tr>
+          ))}
         </tbody>
       </table>
 
