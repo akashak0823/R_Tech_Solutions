@@ -37,7 +37,8 @@ const Login = () => {
     <div className="admin-login-container">
       {/* 🔥 Background Video */}
       <video className="login-bg-video" autoPlay muted loop playsInline>
-        <source src="/assets/Animations/Login.mp4" type="video/mp4" />
+       <source src="/assets/Animations/Login.mp4" type="video/mp4" />
+
         Your browser does not support the video tag.
       </video>
 
@@ -79,3 +80,4 @@ const Login = () => {
 };
 
 export default Login;
+
